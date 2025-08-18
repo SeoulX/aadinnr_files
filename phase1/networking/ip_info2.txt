@@ -1,0 +1,48 @@
+GENERAL.DEVICE:                         wlp1s0
+GENERAL.TYPE:                           wifi
+GENERAL.HWADDR:                         48:E7:DA:C5:1B:E3
+GENERAL.MTU:                            1500
+GENERAL.STATE:                          100 (connected)
+GENERAL.CONNECTION:                     salina
+GENERAL.CON-PATH:                       /org/freedesktop/NetworkManager/ActiveConnection/2
+IP4.ADDRESS[1]:                         192.168.4.9/24
+IP4.GATEWAY:                            192.168.4.1
+IP4.ROUTE[1]:                           dst = 192.168.4.0/24, nh = 0.0.0.0, mt = 600
+IP4.ROUTE[2]:                           dst = 0.0.0.0/0, nh = 192.168.4.1, mt = 600
+IP4.DNS[1]:                             192.168.4.1
+IP4.DOMAIN[1]:                          media-meter.com
+IP6.ADDRESS[1]:                         fe80::a9ab:6a66:aff2:19e4/64
+IP6.GATEWAY:                            --
+IP6.ROUTE[1]:                           dst = fe80::/64, nh = ::, mt = 1024
+
+GENERAL.DEVICE:                         lo
+GENERAL.TYPE:                           loopback
+GENERAL.HWADDR:                         00:00:00:00:00:00
+GENERAL.MTU:                            65536
+GENERAL.STATE:                          100 (connected (externally))
+GENERAL.CONNECTION:                     lo
+GENERAL.CON-PATH:                       /org/freedesktop/NetworkManager/ActiveConnection/1
+IP4.ADDRESS[1]:                         127.0.0.1/8
+IP4.GATEWAY:                            --
+IP6.ADDRESS[1]:                         ::1/128
+IP6.GATEWAY:                            --
+
+GENERAL.DEVICE:                         docker0
+GENERAL.TYPE:                           bridge
+GENERAL.HWADDR:                         C2:25:E9:C4:02:A9
+GENERAL.MTU:                            1500
+GENERAL.STATE:                          100 (connected (externally))
+GENERAL.CONNECTION:                     docker0
+GENERAL.CON-PATH:                       /org/freedesktop/NetworkManager/ActiveConnection/3
+IP4.ADDRESS[1]:                         172.17.0.1/16
+IP4.GATEWAY:                            --
+IP4.ROUTE[1]:                           dst = 172.17.0.0/16, nh = 0.0.0.0, mt = 0
+IP6.GATEWAY:                            --
+
+GENERAL.DEVICE:                         p2p-dev-wlp1s0
+GENERAL.TYPE:                           wifi-p2p
+GENERAL.HWADDR:                         (unknown)
+GENERAL.MTU:                            0
+GENERAL.STATE:                          30 (disconnected)
+GENERAL.CONNECTION:                     --
+GENERAL.CON-PATH:                       --
