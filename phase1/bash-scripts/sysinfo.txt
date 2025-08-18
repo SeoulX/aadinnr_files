@@ -1,0 +1,3 @@
+System: Linux
+Release: 6.14.0-27-generic
+Current Directory: /home/andrian/aadinnr_files/phase1/bash-scripts
