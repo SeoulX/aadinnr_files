@@ -1,0 +1,3 @@
+total 4
+-rw-r--r-- 1 andrian andrian 41 Aug 18 09:29 p1.1.txt
+-rw-rw-r-- 1 andrian andrian  0 Aug 18 09:31 test_output.txt

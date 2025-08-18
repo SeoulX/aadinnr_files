@@ -1,0 +1,4 @@
+mkdir -p ~/linux
+
+mkdir -/linux/test_dir
+bash -l
