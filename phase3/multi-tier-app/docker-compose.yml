@@ -1,39 +1,32 @@
 version: "3.9"
+
 services:
   frontend:
     build: ./frontend
-    # image: phase3-frontend
     ports:
-      - "8080:80"
+      - "3000:3000"
     depends_on:
       - backend
+    env_file:
+      - .env
 
   backend:
     build: ./backend
-    # image: phase3-backend
     ports:
       - "5000:5000"
-    environment:
-      - MYSQL_HOST=db
-      - MYSQL_USER=${MYSQL_USER}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-      - MYSQL_DATABASE=${MYSQL_DATABASE}
     depends_on:
       - db
+    env_file:
+      - .env
 
   db:
-    image: mysql:8.0
-    container_name: mydb
+    image: mongo:6.0
+    container_name: mongodb
     restart: always
-    environment:
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-      - MYSQL_USER=${MYSQL_USER}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-      - MYSQL_DATABASE=${MYSQL_DATABASE}
     ports:
-      - "3306:3306"
+      - "27017:27017"
     volumes:
-      - db_data:/var/lib/mysql
+      - mongo_data:/data/db
 
 volumes:
-  db_data:
+  mongo_data:
