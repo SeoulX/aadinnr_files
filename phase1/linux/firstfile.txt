@@ -1,0 +1,3 @@
+Hello I am Riley.
+I hope you enjoy Linux CLI.
+It is important to practice Linux before getting into DevOps.
