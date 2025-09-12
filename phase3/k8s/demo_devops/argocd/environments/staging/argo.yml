@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: demo-app-staging
+  namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: app=nginx:latest
+    argocd-image-updater.argoproj.io/write-back-method: git
+    argocd-image-updater.argoproj.io/app.update-strategy: latest
+spec:
+  project: demo-project
+  source:
+    repoURL: https://github.com/SeoulX/demo_devops.git
+    targetRevision: main
+    path: phase3/k8s/demo_devops/environments/staging
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: demo-apps
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

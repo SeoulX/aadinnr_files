@@ -1,0 +1,34 @@
+version: "3.9"
+
+services:
+  frontend:
+    build:
+      context: ./codewithdrian
+      dockerfile: Dockerfile
+      args:
+      - MONGODB_URI=mongodb://mongo:27017/codewithdrian
+    container_name: nextjs_app
+    ports:
+      - "3000:3000" 
+    environment:
+      - MONGODB_URI=mongodb://mongo:27017/codewithdrian
+      - NODE_ENV=production
+    depends_on:
+      - mongo
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+  mongo:
+    image: mongo:6
+    container_name: mongo_db
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=codewithdrian
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:
