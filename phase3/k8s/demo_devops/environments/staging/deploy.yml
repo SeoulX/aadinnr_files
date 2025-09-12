@@ -20,3 +20,31 @@ spec:
           image: aadinnr/demo_devops:backend-v1.0.1
           ports:
             - containerPort: 3000
+          env:
+            # From ConfigMap
+            - name: AWS_REGION
+              valueFrom:
+                configMapKeyRef:
+                  name: demo-app-config
+                  key: AWS_REGION
+            - name: DYNAMODB_TABLE_Main
+              valueFrom:
+                configMapKeyRef:
+                  name: demo-app-config
+                  key: DYNAMODB_TABLE_Main
+            - name: DYNAMODB_TABLE_Record
+              valueFrom:
+                configMapKeyRef:
+                  name: demo-app-config
+                  key: DYNAMODB_TABLE_Record
+            # From Secret
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: demo-app-secret
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: demo-app-secret
+                  key: AWS_SECRET_ACCESS_KEY
