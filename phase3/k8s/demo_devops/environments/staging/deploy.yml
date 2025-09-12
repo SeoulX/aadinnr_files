@@ -17,6 +17,6 @@ spec:
     spec:
       containers:
         - name: demo-app
-          image: nginx:1.27-alpine
+          image: aadinnr/demo_devops:backend-v1.0.1
           ports:
-            - containerPort: 80
+            - containerPort: 3000
