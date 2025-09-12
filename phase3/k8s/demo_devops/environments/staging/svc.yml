@@ -10,5 +10,5 @@ spec:
   selector:
     app: demo-app
   ports:
-    - port: 3000
-      targetPort: 3000
+    - port: 8000
+      targetPort: 8000
