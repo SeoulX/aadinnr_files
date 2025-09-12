@@ -4,8 +4,8 @@ kind: Kustomization
 namespace: demo-apps
 
 resources:
-  - deploy.yaml
-  - svc.yaml
-  - ingress.yaml
-  - cm.yaml
+  - deploy.yml
+  - svc.yml
+  - ingress.yml
+  - cm.yml
   # - secret.yml
