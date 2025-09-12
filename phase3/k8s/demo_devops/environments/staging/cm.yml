@@ -4,5 +4,6 @@ metadata:
   name: demo-app-config
   namespace: demo-apps
 data:
-  APP_MODE: "staging"
-  APP_FEATURE_FLAG: "enabled"
+  AWS_REGION: ap-southeast-1
+  DYNAMODB_TABLE_Main: InternsTable
+  DYNAMODB_TABLE_Record: DailyTimeRecordsTable
