@@ -16,4 +16,4 @@ spec:
               service:
                 name: demo-app-staging
                 port:
-                  number: 8000
+                  number: 3000
