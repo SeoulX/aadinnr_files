@@ -6,9 +6,10 @@ metadata:
   labels:
     app: demo-app
 spec:
-  type: ClusterIP
+  type: NodePort
   selector:
     app: demo-app-staging
   ports:
     - port: 80
       targetPort: 3000
+      nodePort: 3000
