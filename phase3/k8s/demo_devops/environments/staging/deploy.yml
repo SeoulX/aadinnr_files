@@ -22,7 +22,7 @@ spec:
             - containerPort: 3000
           env:
             # From ConfigMap
-            - name: NEXT_PUBLIC_API_URL
+            - name: NEXT_PUBLIC_API_BASE_URL
               valueFrom:
                 configMapKeyRef:
                   name: demo-app-config
