@@ -6,7 +6,7 @@ metadata:
 spec:
   description: Demo DevOps project
   sourceRepos:
-    - https://github.com/SeoulX/demo_devops.git
+    - https://github.com/SeoulX/aadinnr_files.git
   destinations:
     - namespace: '*'
       server: https://kubernetes.default.svc

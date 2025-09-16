@@ -10,7 +10,7 @@ metadata:
 spec:
   project: demo-project
   source:
-    repoURL: https://github.com/SeoulX/demo_devops.git
+    repoURL: https://github.com/SeoulX/aadinnr_files.git
     targetRevision: main
     path: phase3/k8s/demo_devops/environments/staging
   destination:

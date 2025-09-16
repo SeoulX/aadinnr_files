@@ -35,7 +35,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: demo-mongo-svc
+  name: demo-mongodb-svc
   namespace: demo-mongo-apps
 spec:
   selector:

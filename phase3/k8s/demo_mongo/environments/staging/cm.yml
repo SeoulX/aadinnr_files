@@ -4,4 +4,4 @@ metadata:
   name: demo-mongo-config
   namespace: demo-mongo-apps
 data:
-  ME_CONFIG_MONGODB_SERVER: demo-mongo-svc
+  ME_CONFIG_MONGODB_SERVER: demo-mongodb-svc
