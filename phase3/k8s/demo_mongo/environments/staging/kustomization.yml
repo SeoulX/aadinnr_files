@@ -9,3 +9,4 @@ resources:
   # - svc.yml
   # - ingress.yml
   - cm.yml
+  - secret.yml
