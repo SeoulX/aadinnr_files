@@ -78,3 +78,8 @@ spec:
                 secretKeyRef:
                   name: demo-app-secret
                   key: AWS_SECRET_ACCESS_KEY
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: demo-app-secret
+                  key: JWT_SECRET
