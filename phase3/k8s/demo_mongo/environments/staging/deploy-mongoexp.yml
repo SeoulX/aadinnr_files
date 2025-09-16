@@ -37,16 +37,16 @@ spec:
                   name: demo-mongo-config
                   key: ME_CONFIG_MONGODB_SERVER
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: demo-mongoexp-svc
-  namespace: demo-mongo-apps
-spec:
-  selector:
-    app: mongoexp
-  type: ClusterIP
-  ports:
-    - protocol: TCP
-      port: 8081
-      targetPort: 8081
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: demo-mongoexp-svc
+#   namespace: demo-mongo-apps
+# spec:
+#   selector:
+#     app: mongoexp
+#   type: ClusterIP
+#   ports:
+#     - protocol: TCP
+#       port: 8081
+#       targetPort: 8081
