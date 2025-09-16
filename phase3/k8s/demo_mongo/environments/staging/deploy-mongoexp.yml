@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongoexp-deploy
+  namespace: demo-mongo-apps
+  labels:
+    app: mongoexp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongoexp
+  template:
+    metadata:
+      labels:
+        app: mongoexp
+    spec:
+      containers:
+        - name: mongo-express
+          image: mongo-express
+          ports:
+            - containerPort: 8081
+          env:
+            - name: ME_CONFIG_MONGODB_ADMINUSERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: demo-mongo-secret
+                  key: MONGO_INITDB_ROOT_USERNAME
+            - name: ME_CONFIG_MONGODB_ADMINPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: demo-mongo-secret
+                  key: MONGO_INITDB_ROOT_PASSWORD
+            - name: ME_CONFIG_MONGODB_SERVER
+              valueFrom:
+                configMapKeyRef:
+                  name: demo-mongo-config
+                  key: ME_CONFIG_MONGODB_SERVER
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo-mongoexp-svc
+  namespace: demo-mongo-apps
+spec:
+  selector:
+    app: mongoexp
+  type: ClusterIP
+  ports:
+    - protocol: TCP
+      port: 8081
+      targetPort: 8081
