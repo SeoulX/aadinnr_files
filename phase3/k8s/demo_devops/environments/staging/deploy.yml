@@ -1,25 +1,55 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: demo-app-staging
+  name: demo-app-frontend-staging
   namespace: demo-apps
   labels:
-    app: demo-app-staging
+    app: demo-app-frontend-staging
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: demo-app-staging
+      app: demo-app-frontend-staging
   template:
     metadata:
       labels:
-        app: demo-app-staging
+        app: demo-app-frontend-staging
     spec:
       containers:
         - name: demo-app
           image: aadinnr/demo_devops:frontend-v1.0.1
           ports:
             - containerPort: 3000
+          env:
+            # From ConfigMap
+            - name: NEXT_PUBLIC_API_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: demo-app-config
+                  key: NEXT_PUBLIC_API_URL
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-app-backend-staging
+  namespace: demo-apps
+  labels:
+    app: demo-app-backend-staging
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: demo-app-backend-staging
+  template:
+    metadata:
+      labels:
+        app: demo-app-backend-staging
+    spec:
+      containers:
+        - name: demo-app
+          image: aadinnr/demo_devops:frontend-v1.0.1
+          ports:
+            - containerPort: 8000
           env:
             # From ConfigMap
             - name: AWS_REGION
