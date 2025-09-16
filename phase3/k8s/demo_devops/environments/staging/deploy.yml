@@ -47,7 +47,7 @@ spec:
     spec:
       containers:
         - name: demo-app
-          image: aadinnr/demo_devops:frontend-v1.0.1
+          image: aadinnr/demo_devops:backend-v1.0.1
           ports:
             - containerPort: 8000
           env:
