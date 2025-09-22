@@ -34,10 +34,10 @@ spec:
       volumes:
       - name: config-vol
         configMap:
-          name: demo-config
+          name: demo-app-config
       - name: secret-vol
         secret:
-          secretName: demo-secret
+          secretName: demo-app-secret
 ---
 apiVersion: apps/v1
 kind: Deployment
