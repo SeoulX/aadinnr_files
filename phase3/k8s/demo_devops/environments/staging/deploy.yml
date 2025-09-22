@@ -27,10 +27,10 @@ spec:
                   name: demo-app-config
                   key: NEXT_PUBLIC_API_BASE_URL
           volumeMounts:
-        - name: config-vol
-          mountPath: /etc/config
-        - name: secret-vol
-          mountPath: /etc/secret
+          - name: config-vol
+            mountPath: /etc/config
+          - name: secret-vol
+            mountPath: /etc/secret
       volumes:
       - name: config-vol
         configMap:
