@@ -4,9 +4,15 @@ metadata:
   name: demo-app-staging
   namespace: argocd
   annotations:
-    argocd-image-updater.argoproj.io/image-list: app=nginx:latest
-    argocd-image-updater.argoproj.io/write-back-method: git
-    argocd-image-updater.argoproj.io/app.update-strategy: latest
+    argocd-image-updater.argoproj.io/image-list: |
+      frontend=aadinnr/demo_devops
+      backend=aadinnr/demo_devops
+    argocd-image-updater.argoproj.io/frontend.allow-tags: regexp:^frontend-v[0-9]+\.[0-9]+\.[0-9]+$
+    argocd-image-updater.argoproj.io/frontend.extractor: semver
+    argocd-image-updater.argoproj.io/frontend.update-strategy: semver
+    argocd-image-updater.argoproj.io/backend.allow-tags: regexp:^backend-v[0-9]+\.[0-9]+\.[0-9]+$
+    argocd-image-updater.argoproj.io/backend.extractor: semver
+    argocd-image-updater.argoproj.io/backend.update-strategy: semver
 spec:
   project: demo-project
   source:
