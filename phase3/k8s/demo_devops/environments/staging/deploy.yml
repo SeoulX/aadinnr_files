@@ -21,12 +21,23 @@ spec:
           ports:
             - containerPort: 3000
           env:
-            # From ConfigMap
             - name: NEXT_PUBLIC_API_BASE_URL
               valueFrom:
                 configMapKeyRef:
                   name: demo-app-config
                   key: NEXT_PUBLIC_API_BASE_URL
+          volumeMounts:
+        - name: config-vol
+          mountPath: /etc/config
+        - name: secret-vol
+          mountPath: /etc/secret
+      volumes:
+      - name: config-vol
+        configMap:
+          name: demo-config
+      - name: secret-vol
+        secret:
+          secretName: demo-secret
 ---
 apiVersion: apps/v1
 kind: Deployment
