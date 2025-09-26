@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: demo-app-ingress
+  name: demo-app-fe-ingress
   namespace: demo-apps
   annotations:
     kubernetes.io/ingress.class: nginx
@@ -9,6 +9,27 @@ spec:
   # ingressClassName: nginx
   rules:
     - host: staging.demo.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: demo-app-frontend-svc
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: demo-app-be-ingress
+  namespace: demo-apps
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  # ingressClassName: nginx
+  rules:
+    - host: staging.backend.local
       http:
         paths:
           - path: /
