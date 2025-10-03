@@ -4,15 +4,27 @@ metadata:
   name: demo-app-staging
   namespace: argocd
   annotations:
+    # Image list for monitoring
     argocd-image-updater.argoproj.io/image-list: |
-      frontend=aadinnr/demo_devops
-      backend=aadinnr/demo_devops
-    argocd-image-updater.argoproj.io/frontend.allow-tags: regexp:^frontend-v[0-9]+\.[0-9]+\.[0-9]+$
-    argocd-image-updater.argoproj.io/frontend.extractor: semver
+      frontend=docker.io/aadinnr/demo_devops:frontend-v4.0.2
+      backend=docker.io/aadinnr/demo_devops:backend-v4.0.2
+
+    # Frontend configuration
     argocd-image-updater.argoproj.io/frontend.update-strategy: semver
-    argocd-image-updater.argoproj.io/backend.allow-tags: regexp:^backend-v[0-9]+\.[0-9]+\.[0-9]+$
-    argocd-image-updater.argoproj.io/backend.extractor: semver
+    argocd-image-updater.argoproj.io/frontend.allow-tags: regexp:^frontend-v[0-9]+\.[0-9]+\.[0-9]+$
+    argocd-image-updater.argoproj.io/frontend.ignore-tags: regexp:^.*-rc.*$
+    argocd-image-updater.argoproj.io/frontend.kustomize.image-name: aadinnr/demo_devops
+    argocd-image-updater.argoproj.io/frontend.kustomize.image-tag: frontend-v4.0.2
+
+    # Backend configuration
     argocd-image-updater.argoproj.io/backend.update-strategy: semver
+    argocd-image-updater.argoproj.io/backend.allow-tags: regexp:^backend-v[0-9]+\.[0-9]+\.[0-9]+$
+    argocd-image-updater.argoproj.io/backend.ignore-tags: regexp:^.*-rc.*$
+    argocd-image-updater.argoproj.io/backend.kustomize.image-name: aadinnr/demo_devops
+    argocd-image-updater.argoproj.io/backend.kustomize.image-tag: backend-v4.0.2
+
+    # Write changes back to ArgoCD application parameters
+    argocd-image-updater.argoproj.io/write-back-method: arg
 spec:
   project: demo-project
   source:

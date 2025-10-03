@@ -1,0 +1,34 @@
+# Override the release name to avoid double naming
+fullNameOverride: jenkins
+
+controller:
+  name: jenkins
+  installPlugins:
+    - kubernetes:latest
+    - workflow-aggregator:latest
+    - git:latest
+    - docker-workflow:latest
+
+  JCasC:
+    enabled: true
+    configScripts:
+      kubernetes-cloud: |
+        jenkins:
+          clouds:
+          - kubernetes:
+              name: "kubernetes"
+              templates:
+              - name: "docker"
+                label: "docker"
+                containers:
+                - name: "docker"
+                  image: "docker:24.0-cli"
+                  command: "cat"
+                  ttyEnabled: true
+                  volumeMounts:
+                  - mountPath: /var/run/docker.sock
+                    name: docker-sock
+              volumes:
+              - hostPath:
+                  path: /var/run/docker.sock
+                name: docker-sock

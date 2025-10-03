@@ -9,3 +9,9 @@ resources:
   - ingress.yml
   - cm.yml
   # - secret.yml
+
+images:
+- name: aadinnr/demo_devops
+  newTag: frontend-v4.0.2
+- name: aadinnr/demo_devops
+  newTag: backend-v4.0.2
