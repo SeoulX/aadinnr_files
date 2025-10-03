@@ -12,6 +12,6 @@ resources:
 
 images:
 - name: aadinnr/demo_devops
-  newTag: frontend-v4.0.2
+  newTag: frontend-v1.0.1
 - name: aadinnr/demo_devops
   newTag: backend-v4.0.2
