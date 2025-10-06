@@ -1,0 +1,120 @@
+resources:
+- ../../../../../global/base/deploy
+- ../../../../../global/base/service
+- ../../../../../global/base/ingress
+
+nameSuffix: -staging
+
+namespace: demo-apps
+
+commonLabels:
+  app: demo-devops-ui
+  service: ui
+  environment: staging
+
+images:
+  - name: base-image
+    newName: aadinnr/demo_devops
+    newTag: frontend-v4.0.2
+
+configMapGenerator:
+- name: demo-devops-ui-cm
+  env: config.properties
+  options:
+    labels:
+      service: ui
+
+# secretGenerator:
+# - name: demo-devops-ui-secret
+#   env: secret.properties
+#   options:
+#     disableNameSuffixHash: true
+
+patches:
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: base-deploy
+    patch: |-
+      - op: replace
+        path: /metadata/name
+        value: demo-devops-ui
+      - op: replace
+        path: /spec/replicas
+        value: 2
+      - op: replace
+        path: /spec/template/spec/containers/0/name
+        value: demo-devops-ui
+      - op: replace
+        path: /spec/template/spec/containers/0/ports/0/containerPort
+        value: 3000
+      # - op: add
+      #   path: /spec/template/spec/affinity
+      #   value:
+      #     nodeAffinity:
+      #       requiredDuringSchedulingIgnoredDuringExecution:
+      #         nodeSelectorTerms:
+      #           - matchExpressions:
+      #             - key: service-type-13
+      #               operator: In
+      #               values:
+      #               - demo-devops-ui
+
+      # - op: replace
+      #   path: /spec/template/spec/tolerations
+      #   value:
+      #     - key: "dept"
+      #       operator: "Equal"
+      #       value: "dc"
+      #       effect: "NoSchedule"
+
+
+  - target:
+      version: v1
+      kind: Service
+      name: base-svc
+    patch: |-
+      - op: replace
+        path: /metadata/name
+        value: demo-devops-ui-svc
+        
+      - op: replace
+        path: /spec/ports
+        value:
+          - protocol: TCP
+            port: 3000
+      - op: replace
+        path: /spec/selector
+        value:
+          app: demo-devops-ui
+          service: ui
+          environment: staging
+      - op: replace
+        path: /spec/template/spec/containers/0/envFrom/0/configMapRef/name
+        value: demo-devops-ui-cm
+      - op: replace
+        path: /spec/template/spec/containers/0/envFrom/1/secretRef/name
+        value: demo-devops-ui-secret-staging
+
+  - target:
+      group: networking.k8s.io
+      version: v1
+      kind: Ingress
+      name: base-ingress
+    patch: |-
+      - op: replace
+        path: /metadata/name
+        value: demo-devops-ui-ingress
+      - op: replace
+        path: /spec/rules/0/host
+        value: demo-devops-ui-staging.local
+      - op: replace
+        path: /spec/rules/0/http/paths/0/backend/service/name
+        value: demo-devops-ui-svc-staging
+      - op: replace
+        path: /spec/rules/0/http/paths/0/backend/service/port/number
+        value: 3000
+      - op: replace
+        path: /spec/ingressClassName
+        value: nginx

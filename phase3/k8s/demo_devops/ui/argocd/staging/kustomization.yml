@@ -1,41 +1,30 @@
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: demo-app-staging
-  namespace: argocd
-  annotations:
-    argocd-image-updater.argoproj.io/image-list: |
-      frontend=aadinnr/demo_devops
-      backend=aadinnr/demo_devops
+resources:
+  - ../../../../global/base/app
 
-    # Frontend
-    argocd-image-updater.argoproj.io/frontend.allow-tags: regexp:^frontend-v[0-9]+\.[0-9]+\.[0-9]+$
-    argocd-image-updater.argoproj.io/frontend.extractor: semver
-    argocd-image-updater.argoproj.io/frontend.update-strategy: semver
-    argocd-image-updater.argoproj.io/frontend.helm.image-name: frontend.image.repository
-    argocd-image-updater.argoproj.io/frontend.helm.image-tag: frontend.image.tag
+nameSuffix: -staging
 
-    # Backend
-    argocd-image-updater.argoproj.io/backend.allow-tags: regexp:^backend-v[0-9]+\.[0-9]+\.[0-9]+$
-    argocd-image-updater.argoproj.io/backend.extractor: semver
-    argocd-image-updater.argoproj.io/backend.update-strategy: semver
-    argocd-image-updater.argoproj.io/backend.helm.image-name: backend.image.repository
-    argocd-image-updater.argoproj.io/backend.helm.image-tag: backend.image.tag
-
-    # Write changes back to Git repo (so they persist in values.yaml)
-    argocd-image-updater.argoproj.io/write-back-method: git
-spec:
-  project: demo-project
-  source:
-    repoURL: https://github.com/SeoulX/aadinnr_files.git
-    targetRevision: main
-    path: phase3/k8s/demo_devops/environments/staging
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: demo-apps
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
+patches:
+  - target:
+      group: argoproj.io
+      version: v1alpha1
+      kind: Application
+      name: base-app
+    patch: |-
+      - op: replace
+        path: /metadata/name
+        value: demo-devops-ui
+      - op: replace
+        path: /spec/project
+        value: demo-project
+      - op: replace
+        path: /metadata/annotations/argocd-image-updater.argoproj.io~1image-list
+        value: alyas=aadinnr/demo_devops
+      - op: replace
+        path: /metadata/annotations/argocd-image-updater.argoproj.io~1alyas.allow-tags
+        value: regexp:^frontend-v[0-9]+.[0-9]+.[0-9]+$
+      - op: replace
+        path: /spec/destination/namespace
+        value: staging
+      - op: replace
+        path: /spec/source/path
+        value: phase3/k8s/demo_devops/ui/environments/staging
