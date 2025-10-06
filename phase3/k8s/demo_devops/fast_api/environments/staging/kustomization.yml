@@ -1,0 +1,158 @@
+resources:
+- ../../../../global/base/deploy
+- ../../../../global/base/service
+- ../../../../global/base/ingress
+
+nameSuffix: -staging
+
+namespace: demo-apps
+
+commonLabels:
+  service: api
+  app: demo-devops-fast-api
+  environment: staging
+
+images:
+  - name: base-image
+    newName: aadinnr/demo_devops
+    newTag: backend-v0.0.0-alpha
+
+configMapGenerator:
+- name: demo-devops-fast-api-cm
+  env: config.properties
+  options:
+    labels:
+      service: api
+
+# secretGenerator:
+# - name: demo-devops-fast-api-secret
+#   env: secret.properties
+#   options:
+#     disableNameSuffixHash: true
+
+patches:
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: base-deploy
+  patch: |-
+    # - op: add 
+    #   path: /spec/template/spec/affinity
+    #   value:
+    #     nodeAffinity:
+    #       requiredDuringSchedulingIgnoredDuringExecution:
+    #         nodeSelectorTerms:
+    #         - matchExpressions:
+    #           - key: service-type-23
+    #             operator: In
+    #             values:
+    #             - scoup
+    #     podAntiAffinity:
+    #       requiredDuringSchedulingIgnoredDuringExecution:
+    #       - labelSelector:
+    #           matchExpressions:
+    #           - key: app
+    #             operator: In
+    #             values:
+    #             - scoup
+    #           - key: service
+    #             operator: In
+    #             values:
+    #             - api
+    #           - key: environment
+    #             operator: In
+    #             values:
+    #             - staging
+    #         topologyKey: kubernetes.io/hostname
+             
+    - op: replace
+      path: /metadata/name
+      value: demo-devops-fast-api
+    - op: replace
+      path: /spec/template/spec/containers/0/name
+      value: demo-devops-fast-api
+    - op: replace
+      path: /spec/replicas
+      value: 1
+    - op: replace
+      path: /spec/selector/matchLabels
+      value:
+        app: demo-devops-fast-api
+        service: api
+        environment: staging
+    - op: replace
+      path: /spec/template/metadata/labels
+      value:
+        app: demo-devops-fast-api
+        service: api
+        environment: staging
+    - op: replace
+      path: /spec/template/spec/containers/0/ports
+      value:
+        - containerPort: 8000
+    - op: replace
+      path: /spec/template/spec/containers/0/envFrom/0/configMapRef/name
+      value: demo-devops-fast-api-cm
+
+    - op: replace
+      path: /spec/template/spec/containers/0/envFrom/1/secretRef/name
+      value: demo-devops-fast-api-secret-staging
+
+- target:
+    version: v1
+    kind: Service
+    name: base-svc  
+  patch: |-
+    - op: replace
+      path: /metadata/name
+      value: demo-devops-fast-api-svc
+    - op: replace
+      path: /spec/selector
+      value:
+        app: demo-devops-fast-api
+        service: api
+        environment: staging
+    - op: replace
+      path: /spec/ports
+      value:
+        - name: demo-devops-fast-api-svc
+          protocol: TCP
+          port: 8000
+          targetPort: 8000
+
+- target:
+    group: networking.k8s.io
+    version: v1
+    kind: Ingress
+    name: base-ingress
+  patch: |-
+    - op: replace
+      path: /metadata/name
+      value: demo-devops-fast-api-ingress
+    - op: add
+      path: /metadata/annotations
+      value:
+        nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+        nginx.ingress.kubernetes.io/enable-cors: "false"
+        nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+        nginx.ingress.kubernetes.io/cors-allow-methods: "*"
+        nginx.ingress.kubernetes.io/cors-allow-headers: "*"
+        nginx.ingress.kubernetes.io/proxy-body-size: "0"
+        # nginx.ingress.kubernetes.io/rewrite-target: /
+    - op: replace
+      path: /spec/ingressClassName
+      value: traefik
+    - op: replace
+      path: /spec/rules
+      value:
+        - host: demo-devops-fast-api-staging.local
+          http:
+            paths:
+              - path: /
+                pathType: Prefix
+                backend:
+                  service:
+                    name: demo-devops-fast-api-svc
+                    port:
+                      number: 8000

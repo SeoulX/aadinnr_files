@@ -1,0 +1,30 @@
+resources:
+  - ../../../../global/base/app
+
+nameSuffix: -staging
+
+patches:
+  - target:
+      group: argoproj.io
+      version: v1alpha1
+      kind: Application
+      name: base-app
+    patch: |-
+      - op: replace
+        path: /metadata/name
+        value: demo-devops-fast-api
+      - op: replace
+        path: /spec/project
+        value: demo-project
+      - op: replace
+        path: /metadata/annotations/argocd-image-updater.argoproj.io~1image-list
+        value: alyas=aadinnr/demo_devops
+      - op: replace
+        path: /metadata/annotations/argocd-image-updater.argoproj.io~1alyas.allow-tags
+        value: regexp:^backend-v[0-9]+.[0-9]+.[0-9]+-alpha$
+      - op: replace
+        path: /spec/destination/namespace
+        value: staging
+      - op: replace
+        path: /spec/source/path
+        value: phase3/k8s/demo_devops/fast_api/environments/staging
