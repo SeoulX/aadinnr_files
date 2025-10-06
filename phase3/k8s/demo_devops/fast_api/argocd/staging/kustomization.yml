@@ -18,10 +18,13 @@ patches:
         value: demo-project
       - op: replace
         path: /metadata/annotations/argocd-image-updater.argoproj.io~1image-list
-        value: base-image=aadinnr/demo_devops
+        value: alyas=aadinnr/demo_devops
       - op: replace
-        path: /metadata/annotations/argocd-image-updater.argoproj.io~1base-image.allow-tags
+        path: /metadata/annotations/argocd-image-updater.argoproj.io~1alyas.allow-tags
         value: regexp:^backend-v[0-9]+.[0-9]+.[0-9]+$
+      - op: replace
+        path: /metadata/annotations/argocd-image-updater.argoproj.io~1alyas.update-strategy
+        value: name
       - op: replace
         path: /spec/destination/namespace
         value: staging

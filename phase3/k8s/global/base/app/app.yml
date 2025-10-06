@@ -18,7 +18,7 @@ spec:
   project: twygr
   source:
     path: null
-    repoURL: https://github.com/SeoulX/aadinnr_files.git
+    repoURL: git@github.com:SeoulX/aadinnr_files.git
     targetRevision: main
   syncPolicy:
     automated:
