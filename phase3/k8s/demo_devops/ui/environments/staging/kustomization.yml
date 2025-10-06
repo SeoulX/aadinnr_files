@@ -44,11 +44,29 @@ patches:
         path: /spec/replicas
         value: 2
       - op: replace
+        path: /spec/selector/matchLabels
+        value:
+          app: demo-devops-ui
+          service: ui
+          environment: staging
+      - op: replace
+        path: /spec/template/metadata/labels
+        value:
+          app: demo-devops-ui
+          service: ui
+          environment: staging
+      - op: replace
         path: /spec/template/spec/containers/0/name
         value: demo-devops-ui
       - op: replace
         path: /spec/template/spec/containers/0/ports/0/containerPort
         value: 3000
+      - op: replace
+        path: /spec/template/spec/containers/0/envFrom/0/configMapRef/name
+        value: demo-devops-ui-cm
+      - op: replace
+        path: /spec/template/spec/containers/0/envFrom/1/secretRef/name
+        value: demo-devops-ui-secret-staging
       # - op: add
       #   path: /spec/template/spec/affinity
       #   value:
@@ -90,12 +108,6 @@ patches:
           app: demo-devops-ui
           service: ui
           environment: staging
-      - op: replace
-        path: /spec/template/spec/containers/0/envFrom/0/configMapRef/name
-        value: demo-devops-ui-cm
-      - op: replace
-        path: /spec/template/spec/containers/0/envFrom/1/secretRef/name
-        value: demo-devops-ui-secret-staging
 
   - target:
       group: networking.k8s.io
