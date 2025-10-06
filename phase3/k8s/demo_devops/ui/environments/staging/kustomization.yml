@@ -23,6 +23,7 @@ configMapGenerator:
   options:
     labels:
       service: ui
+    disableNameSuffixHash: true
 
 # secretGenerator:
 # - name: demo-devops-ui-secret

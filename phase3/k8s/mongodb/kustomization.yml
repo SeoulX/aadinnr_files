@@ -1,0 +1,166 @@
+resources:
+- ../global/base/sts
+- ../global/base/service
+
+nameSuffix: -staging
+
+namespace: demo-apps
+
+commonLabels:
+  app: demo-mongodb
+  service: database
+  environment: staging
+
+images:
+  - name: base-image
+    newName: mongo
+    newTag: "7.0"
+
+configMapGenerator:
+- name: demo-mongodb-cm
+  env: config.properties
+  files:
+    - init-script.js
+  options:
+    labels:
+      service: database
+    disableNameSuffixHash: true
+
+secretGenerator:
+- name: demo-mongodb-secret
+  env: secret.properties
+  options:
+    disableNameSuffixHash: true
+
+patches:
+- target:
+    group: apps
+    version: v1
+    kind: StatefulSet
+    name: base-sts
+  patch: |-
+    - op: replace
+      path: /metadata/name
+      value: demo-mongodb
+    - op: replace
+      path: /spec/serviceName
+      value: demo-mongodb-service
+    - op: add
+      path: /spec/selector
+      value:
+        matchLabels:
+          app: demo-mongodb
+          service: database
+          environment: staging
+    - op: replace
+      path: /spec/template/metadata/labels
+      value:
+        app: demo-mongodb
+        service: database
+        environment: staging
+    - op: replace
+      path: /spec/template/spec/containers/0/name
+      value: demo-mongodb
+    - op: replace
+      path: /spec/template/spec/containers/0/ports/0/containerPort
+      value: 27017
+    - op: replace
+      path: /spec/template/spec/containers/0/ports/0/name
+      value: mongodb
+    - op: replace
+      path: /spec/template/spec/containers/0/envFrom/0/configMapRef/name
+      value: demo-mongodb-cm
+    - op: replace
+      path: /spec/template/spec/containers/0/envFrom/1/secretRef/name
+      value: demo-mongodb-secret
+    - op: add
+      path: /spec/template/spec/containers/0/env
+      value:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: demo-mongodb-secret
+              key: MONGO_INITDB_ROOT_USERNAME
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: demo-mongodb-secret
+              key: MONGO_INITDB_ROOT_PASSWORD
+        - name: MONGO_INITDB_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              name: demo-mongodb-cm
+              key: MONGO_INITDB_DATABASE
+    - op: add
+      path: /spec/template/spec/containers/0/livenessProbe
+      value:
+        exec:
+          command:
+            - mongosh
+            - --eval
+            - "db.adminCommand('ping')"
+        initialDelaySeconds: 30
+        periodSeconds: 10
+        timeoutSeconds: 5
+        failureThreshold: 3
+    - op: add
+      path: /spec/template/spec/containers/0/readinessProbe
+      value:
+        exec:
+          command:
+            - mongosh
+            - --eval
+            - "db.adminCommand('ping')"
+        initialDelaySeconds: 5
+        periodSeconds: 5
+        timeoutSeconds: 3
+        failureThreshold: 3
+    - op: add
+      path: /spec/template/spec/containers/0/volumeMounts
+      value:
+        - name: demo-mongodb-storage
+          mountPath: /data/db
+        - name: demo-mongodb-config
+          mountPath: /docker-entrypoint-initdb.d/init-script.js
+          subPath: init-script.js
+    - op: add
+      path: /spec/template/spec/volumes
+      value:
+        - name: demo-mongodb-config
+          configMap:
+            name: demo-mongodb-cm
+    - op: add
+      path: /spec/volumeClaimTemplates
+      value:
+        - metadata:
+            name: demo-mongodb-storage
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 10Gi
+            storageClassName: longhorn
+
+- target:
+    version: v1
+    kind: Service
+    name: base-svc
+  patch: |-
+    - op: replace
+      path: /metadata/name
+      value: demo-mongodb-service
+    - op: replace
+      path: /spec/ports/0/name
+      value: mongodb
+    - op: replace
+      path: /spec/ports/0/port
+      value: 27017
+    - op: replace
+      path: /spec/ports/0/targetPort
+      value: 27017
+    - op: add
+      path: /spec/selector
+      value:
+        app: demo-mongodb
+        service: database
+        environment: staging

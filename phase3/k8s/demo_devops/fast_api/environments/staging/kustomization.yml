@@ -23,6 +23,7 @@ configMapGenerator:
   options:
     labels:
       service: api
+    disableNameSuffixHash: true
 
 # secretGenerator:
 # - name: demo-devops-fast-api-secret
