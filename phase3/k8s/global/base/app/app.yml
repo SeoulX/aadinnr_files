@@ -18,8 +18,8 @@ spec:
   project: twygr
   source:
     path: null
-    repoURL: git@bitbucket.org:metawhale/manifests-seven-gen.git
-    targetRevision: master
+    repoURL: https://github.com/SeoulX/aadinnr_files.git
+    targetRevision: main
   syncPolicy:
     automated:
       prune: true

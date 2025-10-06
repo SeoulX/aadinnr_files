@@ -15,7 +15,7 @@ commonLabels:
 images:
   - name: base-image
     newName: aadinnr/demo_devops
-    newTag: backend-v0.0.0-alpha
+    newTag: backend-v0.0.0
 
 configMapGenerator:
 - name: demo-devops-fast-api-cm
