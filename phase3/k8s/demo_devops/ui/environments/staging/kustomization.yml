@@ -1,7 +1,7 @@
 resources:
-- ../../../../../global/base/deploy
-- ../../../../../global/base/service
-- ../../../../../global/base/ingress
+- ../../../../global/base/deploy
+- ../../../../global/base/service
+- ../../../../global/base/ingress
 
 nameSuffix: -staging
 
