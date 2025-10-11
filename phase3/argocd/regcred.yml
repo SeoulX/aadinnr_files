@@ -1,0 +1,9 @@
+apiVersion: v1
+data:
+  my-token: YWFkaW5ucjpkY2tyX3BhdF9xRDVRUzc5OVY1ajlyb3dsN0w5V0d2SXRNMGc=
+kind: Secret
+metadata:
+  name: dockerhub
+  namespace: argocd
+type: Opaque
+  

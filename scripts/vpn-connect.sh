@@ -1,6 +1,7 @@
 #!/bin/bash
 
 CONFIG="$HOME/vpn-configs/andrian_binas.ovpn"
+# CONFIG="$HOME/vpn-configs/jericko_razal.ovpn"
 PASS="$HOME/vpn-configs/pass.txt"
 LOGFILE="$HOME/vpn.log"
 

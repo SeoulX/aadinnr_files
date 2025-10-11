@@ -1,0 +1,18 @@
+# Template for Docker Hub credentials
+# Replace the values below with your actual credentials
+
+apiVersion: v1
+data:
+  # Base64 encode your Docker Hub token: echo -n "your-username:your-token" | base64
+  my-token: <BASE64_ENCODED_USERNAME:TOKEN>
+kind: Secret
+metadata:
+  name: dockerhub
+  namespace: argocd
+type: Opaque
+
+# To generate your token:
+# 1. Go to Docker Hub -> Account Settings -> Security
+# 2. Create a new Access Token
+# 3. Encode it: echo -n "your-username:your-access-token" | base64
+# 4. Replace the my-token value above
