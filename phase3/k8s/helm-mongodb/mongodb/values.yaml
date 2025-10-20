@@ -1,0 +1,112 @@
+# Default values for mongodb
+# This is a YAML-formatted file.
+
+replicaCount: 3
+
+image:
+  repository: mongo
+  tag: "7.0"
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  fsGroup: 999
+
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true
+  runAsUser: 999
+
+service:
+  type: ClusterIP
+  port: 27017
+  nodePort: 30017
+
+headlessService:
+  enabled: true
+  port: 27017
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: mongodb.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 2Gi
+  requests:
+    cpu: 500m
+    memory: 1Gi
+
+autoscaling:
+  enabled: false
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+persistence:
+  enabled: true
+  storageClass: "standard"
+  accessMode: ReadWriteOnce
+  size: 10Gi
+
+# MongoDB specific configuration
+mongodb:
+  # Authentication
+  auth:
+    enabled: true
+    rootUsername: admin
+    rootPassword: root123
+    database: demo_app
+  
+  # Replica Set configuration
+  replicaSet:
+    enabled: true
+    name: rs0
+  
+  # Key file for replica set authentication
+  keyFile:
+    enabled: true
+    content: ""
+
+# Init container for replica set initialization
+init:
+  enabled: true
+  image:
+    repository: mongo
+    tag: "7.0"
+    pullPolicy: IfNotPresent
+
+# Monitoring
+monitoring:
+  enabled: false
+  serviceMonitor:
+    enabled: false
+    interval: 30s
+    scrapeTimeout: 10s
