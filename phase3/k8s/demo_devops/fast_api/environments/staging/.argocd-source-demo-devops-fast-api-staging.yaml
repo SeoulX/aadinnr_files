@@ -1,0 +1,3 @@
+kustomize:
+  images:
+  - aadinnr/demo_devops:backend-v4.0.3
