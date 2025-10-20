@@ -134,7 +134,6 @@ patches:
     - op: add
       path: /metadata/annotations
       value:
-        nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
         nginx.ingress.kubernetes.io/enable-cors: "false"
         nginx.ingress.kubernetes.io/cors-allow-origin: "*"
         nginx.ingress.kubernetes.io/cors-allow-methods: "*"
