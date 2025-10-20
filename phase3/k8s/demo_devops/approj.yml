@@ -7,7 +7,7 @@ spec:
   description: Demo DevOps project
   sourceRepos:
     - https://github.com/SeoulX/aadinnr_files.git
-    - git@github.com:SeoulX/demo_devops.git
+    - git@github.com:SeoulX/aadinnr_files.git
   destinations:
     - namespace: '*'
       server: https://kubernetes.default.svc

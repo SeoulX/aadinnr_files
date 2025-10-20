@@ -23,6 +23,9 @@ patches:
         path: /metadata/annotations/argocd-image-updater.argoproj.io~1base-image.allow-tags
         value: regexp:^frontend-v[0-9]+.[0-9]+.[0-9]+$
       - op: replace
+        path: /metadata/annotations/argocd-image-updater.argoproj.io~1base-image.update-strategy
+        value: name
+      - op: replace
         path: /spec/destination/namespace
         value: staging
       - op: replace
