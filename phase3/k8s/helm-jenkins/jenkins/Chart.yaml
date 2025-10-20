@@ -1,0 +1,8 @@
+apiVersion: v2
+name: jenkins
+description: Jenkins CI/CD with Docker-in-Docker capabilities
+
+type: application
+
+version: 0.1.0
+appVersion: "latest"

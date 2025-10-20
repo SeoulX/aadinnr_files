@@ -3,7 +3,7 @@
 # Twitter Consumer Pod Restart Script
 # This script automatically restarts degraded Twitter consumer pods in the scoup namespace
 
-NAMESPACE="putulero"
+NAMESPACE="serp-scrapers"
 
 CLUSTER="--context=Net4"
 

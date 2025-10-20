@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "jenkins.fullname" . }}-plugin-installer
+  labels:
+    {{- include "jenkins.labels" . | nindent 4 }}
+data:
+  install-plugins.sh: |
+    #!/bin/bash
+    set -e
+    
+    echo "Installing Jenkins plugins..."
+    
+    # Wait for Jenkins to be ready
+    while ! curl -f http://localhost:8080/login >/dev/null 2>&1; do
+      echo "Waiting for Jenkins to be ready..."
+      sleep 10
+    done
+    
+    echo "Jenkins is ready, installing plugins..."
+    
+    # Install plugins using Jenkins CLI
+    jenkins-cli() {
+      java -jar /usr/share/jenkins/jenkins.war -s http://localhost:8080 -auth admin:admin "$@"
+    }
+    
+    # Wait a bit more for Jenkins to fully initialize
+    sleep 30
+    
+    # Install essential plugins
+    PLUGINS="git workflow-aggregator kubernetes docker-workflow blueocean pipeline-stage-view build-timeout credentials-binding timestamper ws-cleanup ant gradle ssh-slaves matrix-auth pam-auth ldap email-ext mailer github github-branch-source github-oauth github-api github-pullrequest docker-plugin docker-commons docker-build-step docker-java-api docker-registry pipeline-github-lib pipeline-stage-step pipeline-input-step pipeline-milestone-step maven-plugin gradle-plugin slack credentials plain-credentials"
+    
+    for plugin in $PLUGINS; do
+      echo "Installing plugin: $plugin"
+      jenkins-cli install-plugin "$plugin" || echo "Failed to install $plugin, continuing..."
+    done
+    
+    echo "Restarting Jenkins to apply plugin changes..."
+    jenkins-cli safe-restart || echo "Restart command failed, continuing..."
+    
+    echo "Plugin installation completed!"

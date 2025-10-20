@@ -1,0 +1,19 @@
+{{- if .Values.docker.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "jenkins.fullname" . }}-docker
+  labels:
+    {{- include "jenkins.labels" . | nindent 4 }}
+    app.kubernetes.io/component: docker-daemon
+spec:
+  type: {{ .Values.docker.service.type }}
+  ports:
+    - name: docker-api
+      port: {{ .Values.docker.service.port }}
+      targetPort: {{ .Values.docker.service.targetPort }}
+      protocol: TCP
+  selector:
+    {{- include "jenkins.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: jenkins
+{{- end }}

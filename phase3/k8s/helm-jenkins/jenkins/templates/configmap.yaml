@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "jenkins.fullname" . }}-config
+  labels:
+    {{- include "jenkins.labels" . | nindent 4 }}
+data:
+  init.groovy: |
+    #!/usr/bin/env groovy
+    
+    import jenkins.model.*
+    import hudson.security.*
+    import hudson.security.csrf.DefaultCrumbIssuer
+    import jenkins.security.s2m.AdminWhitelistRule
+    
+    def instance = Jenkins.getInstance()
+    
+    // Disable setup wizard
+    instance.setInstallState(InstallState.INITIAL_SETUP_COMPLETED)
+    
+    // Enable CSRF protection
+    instance.setCrumbIssuer(new DefaultCrumbIssuer(true))
+    
+    // Configure security realm (disable security for demo)
+    def strategy = new FullControlOnceLoggedInAuthorizationStrategy()
+    instance.setAuthorizationStrategy(strategy)
+    
+    // Disable agent master security
+    instance.getInjector().getInstance(AdminWhitelistRule.class).setMasterKillSwitch(false)
+    
+    // Save configuration
+    instance.save()
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "jenkins.fullname" . }}-plugins
+  labels:
+    {{- include "jenkins.labels" . | nindent 4 }}
+data:
+  plugins.txt: |
+    {{- range .Values.jenkins.plugins }}
+    {{ . }}
+    {{- end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "jenkins.fullname" . }}-config-as-code
+  labels:
+    {{- include "jenkins.labels" . | nindent 4 }}
+data:
+  jenkins.yaml: |
+    {{- if .Values.jenkins.configAsCode.enabled }}
+    {{- tpl .Values.jenkins.configAsCode.config . | nindent 4 }}
+    {{- end }}

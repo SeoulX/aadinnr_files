@@ -1,0 +1,157 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "jenkins.fullname" . }}
+  labels:
+    {{- include "jenkins.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "jenkins.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "jenkins.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "jenkins.serviceAccountName" . }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: jenkins
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+            - name: agent
+              containerPort: {{ .Values.service.agentPort }}
+              protocol: TCP
+          env:
+            - name: JAVA_OPTS
+              value: "-Djenkins.install.runSetupWizard=false"
+            - name: JENKINS_OPTS
+              value: "--httpPort={{ .Values.service.port }}"
+            - name: JENKINS_SLAVE_AGENT_PORT
+              value: "{{ .Values.service.agentPort }}"
+            - name: JENKINS_UC
+              value: "https://updates.jenkins.io"
+            - name: JENKINS_UC_DOWNLOAD
+              value: "https://updates.jenkins.io/download"
+            - name: DOCKER_HOST
+              value: "tcp://{{ include "jenkins.fullname" . }}-docker:{{ .Values.docker.service.port }}"
+            - name: JENKINS_PLUGINS
+              value: "{{ join .Values.jenkins.plugins "," }}"
+          livenessProbe:
+            httpGet:
+              path: /login
+              port: http
+            initialDelaySeconds: 90
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /login
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: jenkins-home
+              mountPath: /var/jenkins_home
+            - name: jenkins-config
+              mountPath: /var/jenkins_home/init.groovy.d
+            - name: jenkins-plugins
+              mountPath: /usr/share/jenkins/ref/plugins
+            - name: jenkins-config-as-code
+              mountPath: /var/jenkins_home/casc_configs
+      {{- if .Values.docker.enabled }}
+        - name: docker-daemon
+          image: "{{ .Values.docker.image.repository }}:{{ .Values.docker.image.tag }}"
+          imagePullPolicy: {{ .Values.docker.image.pullPolicy }}
+          {{- with .Values.docker.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: docker-api
+              containerPort: {{ .Values.docker.service.port }}
+              protocol: TCP
+          env:
+            {{- range .Values.docker.env }}
+            - name: {{ .name }}
+              value: {{ .value | quote }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.docker.resources | nindent 12 }}
+          volumeMounts:
+            - name: docker-storage
+              mountPath: /var/lib/docker
+          livenessProbe:
+            tcpSocket:
+              port: docker-api
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            tcpSocket:
+              port: docker-api
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      {{- end }}
+      volumes:
+        - name: jenkins-home
+          {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "jenkins.fullname" . }}-pvc
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        - name: jenkins-config
+          configMap:
+            name: {{ include "jenkins.fullname" . }}-config
+        - name: jenkins-plugins
+          configMap:
+            name: {{ include "jenkins.fullname" . }}-plugins
+        - name: jenkins-config-as-code
+          configMap:
+            name: {{ include "jenkins.fullname" . }}-config-as-code
+        {{- if .Values.docker.enabled }}
+        - name: docker-storage
+          emptyDir: {}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

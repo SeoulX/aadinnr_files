@@ -1,0 +1,205 @@
+# Default values for jenkins.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: jenkins/jenkins
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  fsGroup: 1000
+
+securityContext:
+  runAsUser: 1000
+  runAsGroup: 1000
+  runAsNonRoot: true
+
+service:
+  type: ClusterIP
+  port: 8080
+  targetPort: 8080
+  agentPort: 50000
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    nginx.ingress.kubernetes.io/client-max-body-size: "0"
+  hosts:
+    - host: jenkins.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 2Gi
+  requests:
+    cpu: 500m
+    memory: 1Gi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# Jenkins specific configuration
+jenkins:
+  # Jenkins admin user
+  adminUser: "admin"
+  adminPassword: "admin123"
+  
+  # Jenkins configuration
+  installPlugins: true
+  plugins:
+    - kubernetes:latest
+    - kubernetes-cli:latest
+    - workflow-aggregator:latest
+    - git:latest
+    - docker-workflow:latest
+    - blueocean:latest
+    - pipeline-stage-view:latest
+    - build-timeout:latest
+    - credentials-binding:latest
+    - timestamper:latest
+    - ws-cleanup:latest
+    - ant:latest
+    - gradle:latest
+    - ssh-slaves:latest
+    - matrix-auth:latest
+    - pam-auth:latest
+    - ldap:latest
+    - email-ext:latest
+    - mailer:latest
+    # GitHub Integration
+    - github:latest
+    - github-branch-source:latest
+    - github-oauth:latest
+    - github-api:latest
+    - github-pullrequest:latest
+    # Docker and Container Registry
+    - docker-plugin:latest
+    - docker-commons:latest
+    - docker-build-step:latest
+    - docker-java-api:latest
+    - docker-registry:latest
+    # Additional Pipeline Tools
+    - pipeline-github-lib:latest
+    - pipeline-stage-step:latest
+    - pipeline-input-step:latest
+    - pipeline-milestone-step:latest
+    # Build Tools
+    - maven-plugin:latest
+    - gradle-plugin:latest
+    # Notifications
+    - slack:latest
+    # Security
+    - credentials:latest
+    - plain-credentials:latest
+
+  # Jenkins configuration as code
+  configAsCode:
+    enabled: false
+    config: ""
+
+# Docker-in-Docker configuration
+docker:
+  enabled: true
+  image:
+    repository: docker
+    tag: "dind"
+    pullPolicy: IfNotPresent
+  
+  service:
+    type: ClusterIP
+    port: 2375
+    targetPort: 2375
+  
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 250m
+      memory: 512Mi
+  
+  securityContext:
+    privileged: true
+  
+  env:
+    - name: DOCKER_TLS_CERTDIR
+      value: ""
+    - name: DOCKER_DRIVER
+      value: overlay2
+    - name: DOCKER_HOST
+      value: "tcp://0.0.0.0:2375"
+
+# Persistent volume configuration
+persistence:
+  enabled: true
+  storageClass: "standard"
+  accessMode: ReadWriteOnce
+  size: 20Gi
+  annotations: {}
+
+# RBAC configuration
+rbac:
+  create: true
+  rules:
+    - apiGroups: [""]
+      resources: ["pods", "pods/exec", "pods/log", "pods/portforward", "secrets", "configmaps"]
+      verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+    - apiGroups: [""]
+      resources: ["nodes", "persistentvolumes", "persistentvolumeclaims"]
+      verbs: ["get", "list", "watch"]
+    - apiGroups: ["apps"]
+      resources: ["deployments", "replicasets", "statefulsets", "daemonsets"]
+      verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+    - apiGroups: ["extensions", "networking.k8s.io"]
+      resources: ["ingresses"]
+      verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+    - apiGroups: ["batch"]
+      resources: ["jobs", "cronjobs"]
+      verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+# Docker registry configuration
+registry:
+  enabled: true
+  secretName: "docker-registry-secret"
+  server: "your-registry.com"
+  username: "your-username"
+  password: "your-password"
+  email: "your-email@example.com"

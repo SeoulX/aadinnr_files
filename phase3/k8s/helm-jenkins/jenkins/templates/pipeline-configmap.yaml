@@ -1,0 +1,111 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "jenkins.fullname" . }}-sample-pipelines
+  labels:
+    {{- include "jenkins.labels" . | nindent 4 }}
+data:
+  docker-build-pipeline.groovy: |
+    pipeline {
+        agent any
+        
+        environment {
+            DOCKER_REGISTRY = '{{ .Values.registry.server }}'
+            IMAGE_NAME = 'your-app'
+            IMAGE_TAG = "${BUILD_NUMBER}"
+            DOCKER_HOST = 'tcp://{{ include "jenkins.fullname" . }}-docker:{{ .Values.docker.service.port }}'
+        }
+        
+        stages {
+            stage('Checkout') {
+                steps {
+                    checkout scm
+                }
+            }
+            
+            stage('Build Docker Image') {
+                steps {
+                    script {
+                        sh 'docker --host=${DOCKER_HOST} build -t ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} .'
+                        sh 'docker --host=${DOCKER_HOST} tag ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} ${DOCKER_REGISTRY}/${IMAGE_NAME}:latest'
+                    }
+                }
+            }
+            
+            stage('Push to Registry') {
+                steps {
+                    script {
+                        sh 'docker --host=${DOCKER_HOST} login ${DOCKER_REGISTRY} -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}'
+                        sh 'docker --host=${DOCKER_HOST} push ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}'
+                        sh 'docker --host=${DOCKER_HOST} push ${DOCKER_REGISTRY}/${IMAGE_NAME}:latest'
+                    }
+                }
+            }
+            
+            stage('Deploy to Kubernetes') {
+                steps {
+                    script {
+                        sh """
+                            kubectl set image deployment/your-app your-app=${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
+                            kubectl rollout status deployment/your-app
+                        """
+                    }
+                }
+            }
+        }
+        
+        post {
+            always {
+                cleanWs()
+            }
+            success {
+                echo 'Pipeline succeeded!'
+            }
+            failure {
+                echo 'Pipeline failed!'
+            }
+        }
+    }
+  
+  github-webhook-pipeline.groovy: |
+    pipeline {
+        agent any
+        
+        environment {
+            DOCKER_HOST = 'tcp://{{ include "jenkins.fullname" . }}-docker:{{ .Values.docker.service.port }}'
+        }
+        
+        triggers {
+            githubPush()
+        }
+        
+        stages {
+            stage('Checkout') {
+                steps {
+                    checkout scm
+                }
+            }
+            
+            stage('Test') {
+                steps {
+                    sh 'npm test'
+                }
+            }
+            
+            stage('Build') {
+                steps {
+                    sh 'npm run build'
+                }
+            }
+            
+            stage('Docker Build & Push') {
+                steps {
+                    script {
+                        sh 'docker --host=${DOCKER_HOST} build -t {{ .Values.registry.server }}/your-app:${BUILD_NUMBER} .'
+                        sh 'docker --host=${DOCKER_HOST} login {{ .Values.registry.server }} -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}'
+                        sh 'docker --host=${DOCKER_HOST} push {{ .Values.registry.server }}/your-app:${BUILD_NUMBER}'
+                    }
+                }
+            }
+        }
+    }
