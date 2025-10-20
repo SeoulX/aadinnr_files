@@ -1,0 +1,60 @@
+# ArgoCD ignore file
+# This file tells ArgoCD which files and directories to ignore when processing the repository
+
+# Python virtual environments
+resume_env/
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Python cache directories
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# Backup files
+*.bak
+*.backup
+
+# Node modules (if any)
+node_modules/
+
+# Build artifacts
+build/
+dist/
+target/
+
+# Sensitive files
+secret.*
+*.key
+*.pem
+*.p12
+*.pfx
