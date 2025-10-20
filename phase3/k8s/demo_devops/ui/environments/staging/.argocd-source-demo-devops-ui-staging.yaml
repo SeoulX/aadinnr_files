@@ -1,0 +1,3 @@
+kustomize:
+  images:
+  - aadinnr/demo_devops:frontend-v4.0.4
