@@ -34,7 +34,6 @@ configMapGenerator:
       environment: staging
     disableNameSuffixHash: true
 
-# Secret for MongoDB credentials and init script
 # secretGenerator:
 # - name: mongodb-secret
 #   env: secret.properties
