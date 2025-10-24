@@ -13,7 +13,7 @@ nameSuffix: -staging
 
 # Common labels
 commonLabels:
-  app: demo-mongodb
+  app: mongodb
   service: database
   component: mongodb
   environment: staging
@@ -26,7 +26,7 @@ images:
 
 # ConfigMap for MongoDB configuration
 configMapGenerator:
-- name: demo-mongodb-config
+- name: mongodb-config
   env: config.properties
   options:
     labels:
@@ -36,7 +36,7 @@ configMapGenerator:
 
 # Secret for MongoDB credentials and init script
 # secretGenerator:
-# - name: demo-mongodb-secret
+# - name: mongodb-secret
 #   env: secret.properties
 #   files:
 #   - init-script.js
@@ -53,26 +53,26 @@ patches:
   patch: |-
     - op: replace
       path: /metadata/name
-      value: demo-mongodb
+      value: mongodb
     - op: replace
       path: /spec/serviceName
-      value: demo-mongodb-service
+      value: mongodb-service
     - op: add
       path: /spec/selector
       value:
         matchLabels:
-          app: demo-mongodb
+          app: mongodb
           service: database
           environment: staging
     - op: replace
       path: /spec/template/metadata/labels
       value:
-        app: demo-mongodb
+        app: mongodb
         service: database
         environment: staging
     - op: replace
       path: /spec/template/spec/containers/0/name
-      value: demo-mongodb
+      value: mongodb
     - op: replace
       path: /spec/template/spec/containers/0/ports/0/containerPort
       value: 27017
@@ -81,10 +81,10 @@ patches:
       value: mongodb
     - op: replace
       path: /spec/template/spec/containers/0/envFrom/0/configMapRef/name
-      value: demo-mongodb-config-staging
+      value: mongodb-config-staging
     - op: replace
       path: /spec/template/spec/containers/0/envFrom/1/secretRef/name
-      value: demo-mongodb-secret-staging
+      value: mongodb-secret-staging
     # - op: add
     #   path: /spec/template/spec/containers/0/env
     #   value:
@@ -130,22 +130,22 @@ patches:
     - op: add
       path: /spec/template/spec/containers/0/volumeMounts
       value:
-        - name: demo-mongodb-storage
+        - name: mongodb-storage
           mountPath: /data/db
-        - name: demo-mongodb-secret-staging
+        - name: mongodb-secret-staging
           mountPath: /docker-entrypoint-initdb.d/init-script.js
           subPath: init-script.js
     - op: add
       path: /spec/template/spec/volumes
       value:
-        - name: demo-mongodb-secret-staging
+        - name: mongodb-secret-staging
           secret:
-            secretName: demo-mongodb-secret-staging
+            secretName: mongodb-secret-staging
     - op: add
       path: /spec/volumeClaimTemplates
       value:
         - metadata:
-            name: demo-mongodb-storage
+            name: mongodb-storage
           spec:
             accessModes: ["ReadWriteOnce"]
             resources:
@@ -161,7 +161,7 @@ patches:
   patch: |-
     - op: replace
       path: /metadata/name
-      value: demo-mongodb-service
+      value: mongodb-service
     - op: replace
       path: /spec/ports/0/name
       value: mongodb
@@ -180,7 +180,7 @@ patches:
     - op: add
       path: /spec/selector
       value:
-        app: demo-mongodb
+        app: mongodb
         service: database
         environment: staging
 
@@ -193,7 +193,7 @@ patches:
   patch: |-
     - op: replace
       path: /metadata/name
-      value: demo-mongodb-ingress
+      value: mongodb-ingress
     - op: replace
       path: /spec/ingressClassName
       value: nginx
@@ -207,7 +207,7 @@ patches:
                 pathType: Prefix
                 backend:
                   service:
-                    name: demo-mongodb-service-staging
+                    name: mongodb-service-staging
                     port:
                       number: 27017
     - op: add
