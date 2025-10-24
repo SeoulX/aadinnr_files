@@ -5,6 +5,8 @@
 
 NAMESPACE="serp-scrapers"
 
-CLUSTER="--context=Net4"
+CLUSTER="--context=aws-mmi"
 
-kubectl $CLUSTER get pods -n $NAMESPACE | grep -v 'Running' | awk '{print $1}' | xargs kubectl $CLUSTER delete pod -n $NAMESPACE
+kubectl $CLUSTER get pods -n $NAMESPACE  | awk '{print $1}' | xargs kubectl $CLUSTER delete pod -n $NAMESPACE
+
+# | grep -v 'Running'

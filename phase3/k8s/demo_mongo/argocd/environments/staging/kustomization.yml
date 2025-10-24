@@ -1,0 +1,24 @@
+resources:
+  - ../../../../global/base/app
+
+nameSuffix: -staging
+
+patches:
+  - target:
+      group: argoproj.io
+      version: v1alpha1
+      kind: Application
+      name: base-app
+    patch: |-
+      - op: replace
+        path: /metadata/name
+        value: demo-mongodb
+      - op: replace
+        path: /spec/project
+        value: demo-project
+      - op: replace
+        path: /spec/destination/namespace
+        value: staging
+      - op: replace
+        path: /spec/source/path
+        value: phase3/k8s/demo_mongo/environments/staging

@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: demo-mongo-config
-  namespace: demo-mongo-apps
-data:
-  ME_CONFIG_MONGODB_SERVER: demo-mongodb-svc
