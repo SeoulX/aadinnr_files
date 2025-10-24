@@ -3,7 +3,7 @@ kind: Kustomization
 
 # Base resources
 resources:
-- ../../../../global/base/sts
+- ../../../global/base/sts
 - ../../../../global/base/service
 - ../../../../global/base/ingress
 
