@@ -4,8 +4,8 @@ kind: Kustomization
 # Base resources
 resources:
 - ../../../global/base/sts
-- ../../../../global/base/service
-- ../../../../global/base/ingress
+- ../../../global/base/service
+- ../../../global/base/ingress
 
 # Namespace and naming
 namespace: mongodb
