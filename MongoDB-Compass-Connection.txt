@@ -1,0 +1,65 @@
+MongoDB Compass Connection Details
+====================================
+
+Host: 192.168.39.200
+Port: 30017
+Username: admin
+Password: staging123
+Default Database: demo_app
+
+Connection String:
+mongodb://admin:staging123@192.168.39.200:30017/demo_app?authSource=admin
+
+Alternative (direct to database):
+mongodb://admin:staging123@192.168.39.200:30017/demo_app
+
+==============================
+INSTRUCTIONS FOR MONGODB COMPASS
+==============================
+
+1. Open MongoDB Compass
+2. Enter this connection string in the URI field:
+   mongodb://admin:staging123@192.168.39.200:30017/demo_app?authSource=admin
+3. Click "Connect"
+
+OR use Manual connection:
+   - Host: 192.168.39.200
+   - Port: 30017
+   - Authentication: Username/Password
+   - Username: admin
+   - Password: staging123
+   - Default Database: demo_app
+   - Auth Source: admin
+
+==============================
+TROUBLESHOOTING
+==============================
+
+If connection fails (CORS/Origin errors):
+
+⚠️ INGRESS WON'T WORK for MongoDB Compass! Use one of these:
+
+METHOD 1: Port Forward (EASIEST - Recommended)
+-----------------------------------------------
+Run this command in terminal:
+   kubectl port-forward -n mongodb svc/mongodb-service-staging 27017:27017
+
+Then connect to:
+   mongodb://admin:staging123@localhost:27017/demo_app?authSource=admin
+   
+NOTE: Keep the terminal running with port-forward.
+
+METHOD 2: Direct Node Access
+------------------------------
+Connection details:
+   Host: 192.168.39.200
+   Port: 30017
+   URI: mongodb://admin:staging123@192.168.39.200:30017/demo_app?authSource=admin
+
+METHOD 3: Delete Ingress and Use NodePort Only
+-----------------------------------------------
+The nginx ingress is causing CORS errors. If you don't need ingress:
+   kubectl delete ingress -n mongodb mongodb-ingress-staging
+   
+Then connect via NodePort (30017 on node IP)
+
