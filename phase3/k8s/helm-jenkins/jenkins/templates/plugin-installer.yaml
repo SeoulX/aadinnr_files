@@ -28,7 +28,7 @@ data:
     sleep 30
     
     # Install essential plugins
-    PLUGINS="git workflow-aggregator kubernetes docker-workflow blueocean pipeline-stage-view build-timeout credentials-binding timestamper ws-cleanup ant gradle ssh-slaves matrix-auth pam-auth ldap email-ext mailer github github-branch-source github-oauth github-api github-pullrequest docker-plugin docker-commons docker-build-step docker-java-api docker-registry pipeline-github-lib pipeline-stage-step pipeline-input-step pipeline-milestone-step maven-plugin gradle-plugin slack credentials plain-credentials"
+    PLUGINS="git workflow-aggregator kubernetes docker-workflow blueocean pipeline-stage-view build-timeout credentials-binding timestamper ws-cleanup ant gradle ssh-slaves matrix-auth pam-auth ldap email-ext mailer github github-branch-source github-oauth github-api github-pullrequest github-plugin docker-plugin docker-commons docker-build-step docker-java-api docker-registry pipeline-github-lib pipeline-stage-step pipeline-input-step pipeline-milestone-step maven-plugin gradle-plugin slack credentials plain-credentials"
     
     for plugin in $PLUGINS; do
       echo "Installing plugin: $plugin"

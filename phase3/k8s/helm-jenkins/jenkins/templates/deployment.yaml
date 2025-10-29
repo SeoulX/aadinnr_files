@@ -61,7 +61,7 @@ spec:
             - name: DOCKER_HOST
               value: "tcp://{{ include "jenkins.fullname" . }}-docker:{{ .Values.docker.service.port }}"
             - name: JENKINS_PLUGINS
-              value: "{{ join .Values.jenkins.plugins "," }}"
+              value: "{{ join "," .Values.jenkins.plugins }}"
           livenessProbe:
             httpGet:
               path: /login

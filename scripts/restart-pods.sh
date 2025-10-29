@@ -7,6 +7,6 @@ NAMESPACE="article-story-value"
 
 CLUSTER="--context=aws-mmi"
 
-kubectl $CLUSTER get pods -n $NAMESPACE | grep 'article-story-value-v2-scaledjob'| awk '{print $1}' | xargs kubectl $CLUSTER delete pod -n $NAMESPACE
+kubectl $CLUSTER get pods -n $NAMESPACE | grep -v 'Running' | grep 'article-story-value-v2-scaledjob'| awk '{print $1}' | xargs kubectl $CLUSTER delete pod -n $NAMESPACE
 
 # | grep -v 'Running'

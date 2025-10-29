@@ -110,6 +110,7 @@ jenkins:
     - github-oauth:latest
     - github-api:latest
     - github-pullrequest:latest
+    - github-plugin:latest
     # Docker and Container Registry
     - docker-plugin:latest
     - docker-commons:latest
