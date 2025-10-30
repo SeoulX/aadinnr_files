@@ -121,7 +121,7 @@ patches:
         value: demo-devops-ui-ingress
       - op: replace
         path: /spec/rules/0/host
-        value: demo-devops-ui-staging.local
+        value: ui-staging.local
       - op: replace
         path: /spec/rules/0/http/paths/0/backend/service/name
         value: demo-devops-ui-svc-staging

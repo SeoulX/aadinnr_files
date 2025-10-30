@@ -32,6 +32,46 @@ spec:
       securityContext:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      # Init containers
+      initContainers:
+        - name: tools-installer
+          image: alpine:latest
+          command:
+            - sh
+            - -c
+            - |
+              apk add --no-cache curl
+              # Download kubectl
+              KUBECTL_VERSION=$(curl -L -s https://dl.k8s.io/release/stable.txt)
+              curl -LO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
+              chmod +x kubectl
+              mv kubectl /shared/kubectl
+              # Download docker client
+              DOCKER_VERSION=24.0.7
+              curl -fsSL "https://download.docker.com/linux/static/stable/x86_64/docker-${DOCKER_VERSION}.tgz" | tar -xz -C /tmp
+              chmod +x /tmp/docker/docker
+              mv /tmp/docker/docker /shared/docker
+              ls -la /shared/
+          volumeMounts:
+            - name: shared-tools
+              mountPath: /shared
+        - name: tools-symlinker
+          image: alpine:latest
+          command:
+            - sh
+            - -c
+            - |
+              # Create symlinks in /usr/local/bin (which will be mounted as jenkins-home prep)
+              mkdir -p /target/usr/local/bin
+              cp /shared/kubectl /target/usr/local/bin/kubectl
+              cp /shared/docker /target/usr/local/bin/docker
+              chmod +x /target/usr/local/bin/kubectl /target/usr/local/bin/docker
+              ls -la /target/usr/local/bin/
+          volumeMounts:
+            - name: shared-tools
+              mountPath: /shared
+            - name: jenkins-home
+              mountPath: /target
       containers:
         - name: jenkins
           {{- with .Values.securityContext }}
@@ -40,6 +80,15 @@ spec:
           {{- end }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - /bin/bash
+                  - -c
+                  - |
+                    sleep 2
+                    /usr/local/bin/copy-tools.sh || true
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
@@ -50,18 +99,40 @@ spec:
           env:
             - name: JAVA_OPTS
               value: "-Djenkins.install.runSetupWizard=false"
+            # Copy tools script before Jenkins starts
+            - name: POST_INIT_SCRIPT
+              value: "/usr/local/bin/copy-tools.sh"
             - name: JENKINS_OPTS
               value: "--httpPort={{ .Values.service.port }}"
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
             - name: JENKINS_SLAVE_AGENT_PORT
               value: "{{ .Values.service.agentPort }}"
             - name: JENKINS_UC
               value: "https://updates.jenkins.io"
             - name: JENKINS_UC_DOWNLOAD
               value: "https://updates.jenkins.io/download"
+            {{- if .Values.docker.useHostDocker }}
+            - name: DOCKER_HOST
+              value: "unix:///var/run/docker.sock"
+            {{- else if .Values.docker.enabled }}
             - name: DOCKER_HOST
               value: "tcp://{{ include "jenkins.fullname" . }}-docker:{{ .Values.docker.service.port }}"
+            {{- end }}
             - name: JENKINS_PLUGINS
               value: "{{ join "," .Values.jenkins.plugins }}"
+            # Add tools directory to PATH (prepend, don't override)
+            - name: PATH
+              value: "/var/jenkins_home/usr/local/bin:$PATH"
+            # Kubernetes API configuration
+            - name: KUBERNETES_SERVICE_HOST
+              value: "kubernetes.default.svc"
+            - name: KUBERNETES_SERVICE_PORT
+              value: "443"
+            - name: KUBECONFIG
+              value: "/var/jenkins_home/.kube/config"
           livenessProbe:
             httpGet:
               path: /login
@@ -85,10 +156,20 @@ spec:
               mountPath: /var/jenkins_home
             - name: jenkins-config
               mountPath: /var/jenkins_home/init.groovy.d
-            - name: jenkins-plugins
-              mountPath: /usr/share/jenkins/ref/plugins
+            - name: jenkins-tools-script
+              mountPath: /usr/local/bin/copy-tools.sh
+              subPath: copy-tools.sh
+            - name: jenkins-plugins-txt
+              mountPath: /usr/share/jenkins/ref/plugins.txt
+              subPath: plugins.txt
+              readOnly: true
             - name: jenkins-config-as-code
               mountPath: /var/jenkins_home/casc_configs
+            {{- if .Values.docker.useHostDocker }}
+            # Mount minikube's docker socket (optional - only if useHostDocker is true)
+            - name: docker-sock
+              mountPath: /var/run/docker.sock
+            {{- end }}
       {{- if .Values.docker.enabled }}
         - name: docker-daemon
           image: "{{ .Values.docker.image.repository }}:{{ .Values.docker.image.tag }}"
@@ -133,12 +214,26 @@ spec:
         - name: jenkins-config
           configMap:
             name: {{ include "jenkins.fullname" . }}-config
-        - name: jenkins-plugins
+        - name: jenkins-tools-script
+          configMap:
+            name: {{ include "jenkins.fullname" . }}-config
+            defaultMode: 0755
+        - name: jenkins-plugins-txt
           configMap:
             name: {{ include "jenkins.fullname" . }}-plugins
         - name: jenkins-config-as-code
           configMap:
             name: {{ include "jenkins.fullname" . }}-config-as-code
+        # Shared volume for kubectl from initContainer
+        - name: shared-tools
+          emptyDir: {}
+        {{- if .Values.docker.useHostDocker }}
+        # Host docker socket for minikube
+        - name: docker-sock
+          hostPath:
+            path: /var/run/docker.sock
+            type: Socket
+        {{- end }}
         {{- if .Values.docker.enabled }}
         - name: docker-storage
           emptyDir: {}

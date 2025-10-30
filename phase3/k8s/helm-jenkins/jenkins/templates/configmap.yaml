@@ -30,6 +30,17 @@ data:
     
     // Save configuration
     instance.save()
+  copy-tools.sh: |
+    #!/bin/bash
+    # Copy kubectl and docker to system PATH
+    if [ -f /var/jenkins_home/usr/local/bin/kubectl ]; then
+      cp /var/jenkins_home/usr/local/bin/kubectl /usr/local/bin/kubectl 2>/dev/null || true
+      chmod +x /usr/local/bin/kubectl 2>/dev/null || true
+    fi
+    if [ -f /var/jenkins_home/usr/local/bin/docker ]; then
+      cp /var/jenkins_home/usr/local/bin/docker /usr/local/bin/docker 2>/dev/null || true
+      chmod +x /usr/local/bin/docker 2>/dev/null || true
+    fi
 ---
 apiVersion: v1
 kind: ConfigMap

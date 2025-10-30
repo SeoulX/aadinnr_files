@@ -146,7 +146,7 @@ patches:
     - op: replace
       path: /spec/rules
       value:
-        - host: demo-devops-fast-api-staging.local
+        - host: fast-api-staging.local
           http:
             paths:
               - path: /
