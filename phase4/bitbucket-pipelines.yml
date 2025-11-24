@@ -1,0 +1,53 @@
+image: atlassian/default-image:4
+options:
+  docker: true
+  size: 2x
+
+pipelines:
+  tags:
+    "v*.*.*-alpha":
+      - step:
+          name: Build and push alpha image
+          script:
+            - echo ${DOCKERHUB_PASSWORD} | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
+            - IMAGE_NAME=$BITBUCKET_REPO_SLUG
+            - docker build . --file Dockerfile --tag ${IMAGE_NAME}
+            - IMAGE=${DOCKERHUB_NAMESPACE}/${IMAGE_NAME}
+            - docker tag "${IMAGE_NAME}" "${IMAGE}:${BITBUCKET_TAG}"
+            - docker tag "${IMAGE_NAME}" "${IMAGE}:alpha"
+            - docker push "${IMAGE}:${BITBUCKET_TAG}"
+            - docker push "${IMAGE}:alpha"
+          services:
+            - docker
+          caches:
+            - docker
+
+    "v*.*.*":
+      - step:
+          name: Install and lint Python code
+          image: python:3.11-slim
+          script:
+            - pip install -r requirements.txt
+            - pip install flake8
+            - flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+            - python -c "from main import check_dependencies"
+      - step:
+          name: Build and push production image
+          script:
+            - echo ${DOCKERHUB_PASSWORD} | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
+            - IMAGE_NAME=$BITBUCKET_REPO_SLUG
+            - docker build . --file Dockerfile --tag ${IMAGE_NAME}
+            - IMAGE=${DOCKERHUB_NAMESPACE}/${IMAGE_NAME}
+            - docker tag "${IMAGE_NAME}" "${IMAGE}:${BITBUCKET_TAG}"
+            - docker tag "${IMAGE_NAME}" "${IMAGE}:latest"
+            - docker push "${IMAGE}:${BITBUCKET_TAG}"
+            - docker push "${IMAGE}:latest"
+          services:
+            - docker
+          caches:
+            - docker
+            
+definitions:
+  services: 
+    docker:
+      memory: 2048

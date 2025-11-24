@@ -50,16 +50,116 @@ echo "Docker installation completed at $(date)" >> /home/ubuntu/docker-install.l
 echo "Docker version: $(docker --version)" >> /home/ubuntu/docker-install.log
 chown ubuntu:ubuntu /home/ubuntu/docker-install.log
 # Setup EBS volume
-lsblk
-mkdir -p /mnt/ebs
-sudo chown ubuntu:ubuntu /mnt/ebs
-mkdir -p /mnt/ebs/data
-sudo chown ubuntu:ubuntu /mnt/ebs/data
-mkfs.ext4 -F /dev/nvme1n1
-mount /dev/nvme1n1 /mnt/ebs
-sysctl -w vm.max_map_count=262144
+# Dynamically find the additional EBS volume (not the root volume)
+# On NVMe instances, device order can vary, so we identify by:
+# 1. Finding the root device (has partitions and is mounted)
+# 2. Finding the other NVMe device that's not the root
 
-# Configure system settings for ElasticSearch
+echo "Detecting EBS volumes..."
+# Wait for NVMe devices to be available
+for i in {1..30}; do
+  if lsblk -n -d -o NAME | grep -q "^nvme"; then
+    echo "NVMe devices detected"
+    break
+  fi
+  echo "Waiting for NVMe devices... (attempt $i/30)"
+  sleep 2
+done
+
+# Find root device (has partitions and is mounted at /)
+ROOT_DEVICE=$(lsblk -n -d -o NAME,MOUNTPOINT | grep -E "\s/$" | awk '{print $1}' | head -1)
+if [ -n "$ROOT_DEVICE" ]; then
+  ROOT_DEVICE="/dev/${ROOT_DEVICE}"
+  echo "Root device identified: $ROOT_DEVICE"
+else
+  # Fallback: find device with partitions (root usually has partitions)
+  ROOT_DEVICE=$(lsblk -n -d -o NAME | while read dev; do
+    if lsblk -n "/dev/$dev" | grep -q "part"; then
+      echo "/dev/$dev"
+      break
+    fi
+  done | head -1)
+  echo "Root device identified (by partitions): $ROOT_DEVICE"
+fi
+
+# Find additional EBS volume (the other NVMe device, not root, no partitions, ~1000GB)
+EBS_DEVICE=""
+for dev in /dev/nvme*n1; do
+  if [ ! -b "$dev" ]; then
+    continue
+  fi
+  # Skip if this is the root device
+  if [ "$dev" = "$ROOT_DEVICE" ]; then
+    continue
+  fi
+  # Check if it has no partitions (additional EBS volumes typically don't have partitions initially)
+  if ! lsblk -n "$dev" | grep -q "part"; then
+    # Get size in GB and check if it's close to 1000GB (allowing some variance)
+    SIZE_GB=$(lsblk -b -d -o SIZE "$dev" | awk '{printf "%.0f", $1/1024/1024/1024}')
+    if [ "$SIZE_GB" -ge 900 ] && [ "$SIZE_GB" -le 1100 ]; then
+      EBS_DEVICE="$dev"
+      echo "Additional EBS volume identified: $EBS_DEVICE (${SIZE_GB}GB)"
+      break
+    fi
+  fi
+done
+
+# Fallback: if not found by size, use the first non-root NVMe device
+if [ -z "$EBS_DEVICE" ]; then
+  for dev in /dev/nvme*n1; do
+    if [ ! -b "$dev" ]; then
+      continue
+    fi
+    if [ "$dev" != "$ROOT_DEVICE" ]; then
+      EBS_DEVICE="$dev"
+      echo "Additional EBS volume identified (fallback): $EBS_DEVICE"
+      break
+    fi
+  done
+fi
+
+if [ -z "$EBS_DEVICE" ] || [ ! -b "$EBS_DEVICE" ]; then
+  echo "ERROR: Additional EBS volume not found"
+  echo "Available devices:"
+  lsblk
+  exit 1
+fi
+
+echo "Using EBS device: $EBS_DEVICE"
+
+# Create mount point
+mkdir -p /mnt/ebs
+
+# Check if volume is already formatted (has a filesystem)
+if ! blkid "$EBS_DEVICE" > /dev/null 2>&1; then
+  echo "Formatting $EBS_DEVICE with ext4 filesystem..."
+  mkfs.ext4 -F "$EBS_DEVICE"
+else
+  echo "$EBS_DEVICE already has a filesystem, skipping format"
+fi
+
+# Mount the volume
+mount "$EBS_DEVICE" /mnt/ebs
+
+# Add to /etc/fstab for persistent mounting across reboots
+if ! grep -q "$EBS_DEVICE" /etc/fstab; then
+  echo "$EBS_DEVICE /mnt/ebs ext4 defaults,nofail 0 2" | sudo tee -a /etc/fstab
+  echo "Added $EBS_DEVICE to /etc/fstab for persistent mounting"
+fi
+
+# Create data directory with proper permissions for Elasticsearch
+# Elasticsearch container runs as UID 1000 (elasticsearch user)
+mkdir -p /mnt/ebs/data
+# Set ownership to UID 1000:GID 1000 (elasticsearch user in container)
+sudo chown 1000:1000 /mnt/ebs/data
+# Set permissions to allow read/write/execute for owner and group
+sudo chmod 775 /mnt/ebs/data
+echo "Set permissions on /mnt/ebs/data for Elasticsearch (UID 1000:GID 1000)"
+
+# Configure system settings for ElasticSearch (immediate effect)
+sudo sysctl -w vm.max_map_count=262144
+
+# Configure system settings for ElasticSearch (persistent across reboots)
 echo "vm.max_map_count=262144" | sudo tee -a /etc/sysctl.conf > /dev/null
 
 export HOSTNAME=$(hostname)
@@ -100,4 +200,10 @@ if [ ! -f "$DOCKER_COMPOSE_FILE" ]; then
 fi
 
 cd /home/ubuntu
+# Ensure Elasticsearch data directory has correct permissions before starting
+sudo chown -R 1000:1000 /mnt/ebs/data
+sudo chmod -R 775 /mnt/ebs/data
+export HOSTNAME=$(hostname)
+export HOST_IP=$(hostname -I | awk '{print $1}')
+sudo sysctl -w vm.max_map_count=262144
 docker compose up -d

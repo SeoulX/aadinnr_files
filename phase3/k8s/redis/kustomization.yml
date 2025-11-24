@@ -1,0 +1,193 @@
+resources:
+- ../global/base/sts
+- ../global/base/service
+- ../global/base/ns
+
+nameSuffix: ""
+
+namespace: redis
+
+commonLabels:
+  app: redis
+  service: cache
+  component: redis
+
+images:
+  - name: base-image
+    newName: redis
+    newTag: "7.2.8-alpine"
+
+configMapGenerator:
+- name: redis-cm
+  env: config.properties
+  options:
+    labels:
+      service: cache
+    disableNameSuffixHash: true
+
+secretGenerator:
+- name: redis-secret
+  env: secret.properties
+  options:
+    disableNameSuffixHash: true
+
+patches:
+- target:
+    group: apps
+    version: v1
+    kind: StatefulSet
+    name: base-sts
+  patch: |-
+    - op: replace
+      path: /metadata/name
+      value: redis
+    - op: replace
+      path: /spec/serviceName
+      value: my-redis-headless
+    - op: add
+      path: /spec/replicas
+      value: 1
+    - op: add
+      path: /spec/selector
+      value:
+        matchLabels:
+          app: redis
+          service: cache
+          component: redis
+    - op: replace
+      path: /spec/template/metadata/labels
+      value:
+        app: redis
+        service: cache
+        component: redis
+    - op: replace
+      path: /spec/template/spec/containers/0/name
+      value: redis
+    - op: replace
+      path: /spec/template/spec/containers/0/ports/0/containerPort
+      value: 6379
+    - op: replace
+      path: /spec/template/spec/containers/0/ports/0/name
+      value: redis
+    - op: replace
+      path: /spec/template/spec/containers/0/envFrom/0/configMapRef/name
+      value: redis-cm
+    - op: replace
+      path: /spec/template/spec/containers/0/envFrom/1/secretRef/name
+      value: redis-secret
+    - op: add
+      path: /spec/template/spec/containers/0/command
+      value:
+        - redis-server
+    - op: add
+      path: /spec/template/spec/containers/0/args
+      value:
+        - --requirepass
+        - $(REDIS_PASSWORD)
+        - --appendonly
+        - "yes"
+        - --appendfsync
+        - everysec
+    - op: add
+      path: /spec/template/spec/containers/0/env
+      value:
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: redis-secret
+              key: REDIS_PASSWORD
+    - op: add
+      path: /spec/template/spec/containers/0/livenessProbe
+      value:
+        exec:
+          command:
+            - sh
+            - -c
+            - redis-cli -a $REDIS_PASSWORD ping | grep PONG
+        initialDelaySeconds: 30
+        periodSeconds: 10
+        timeoutSeconds: 5
+        failureThreshold: 3
+    - op: add
+      path: /spec/template/spec/containers/0/readinessProbe
+      value:
+        exec:
+          command:
+            - sh
+            - -c
+            - redis-cli -a $REDIS_PASSWORD ping | grep PONG
+        initialDelaySeconds: 5
+        periodSeconds: 5
+        timeoutSeconds: 3
+        failureThreshold: 3
+    - op: add
+      path: /spec/template/spec/containers/0/volumeMounts
+      value:
+        - name: redis-data
+          mountPath: /data
+    - op: add
+      path: /spec/template/spec/containers/0/resources
+      value:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          cpu: 500m
+          memory: 512Mi
+    - op: add
+      path: /spec/template/spec/securityContext
+      value:
+        runAsNonRoot: true
+        runAsUser: 999
+        fsGroup: 999
+    - op: add
+      path: /spec/volumeClaimTemplates
+      value:
+        - metadata:
+            name: redis-data
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 10Gi
+            storageClassName: standard
+
+- target:
+    version: v1
+    kind: Service
+    name: base-svc
+  patch: |-
+    - op: replace
+      path: /metadata/name
+      value: my-redis-headless
+    - op: add
+      path: /spec/clusterIP
+      value: None
+    - op: replace
+      path: /spec/ports/0/name
+      value: redis
+    - op: replace
+      path: /spec/ports/0/port
+      value: 6379
+    - op: replace
+      path: /spec/ports/0/targetPort
+      value: 6379
+    - op: replace
+      path: /spec/type
+      value: ClusterIP
+    - op: add
+      path: /spec/selector
+      value:
+        app: redis
+        service: cache
+        component: redis
+
+- target:
+    version: v1
+    kind: Namespace
+    name: base-ns
+  patch: |-
+    - op: replace
+      path: /metadata/name
+      value: redis
+

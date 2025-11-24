@@ -13,13 +13,13 @@ variable "instance_name_prefix" {
 variable "start_index" {
   description = "Starting number for instance naming (e.g., 7 for es7)"
   type        = number
-  default     = 8
+  default     = 7
 }
 
 variable "instance_count" {
   description = "Number of instances to create"
   type        = number
-  default     = 3
+  default     = 4
 }
 
 variable "instance_type" {

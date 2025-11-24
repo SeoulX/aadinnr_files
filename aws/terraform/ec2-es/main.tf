@@ -80,7 +80,9 @@ resource "aws_instance" "es_internal" {
 
   vpc_security_group_ids = var.security_group_ids
 
-  # Root volume (30GB) - appears as nvme0n1, mounted as root filesystem (/)
+  # Root volume (30GB) - mounted as root filesystem (/)
+  # Note: On NVMe instances, device ordering (nvme0n1 vs nvme1n1) is NOT guaranteed
+  # The user_data script dynamically identifies volumes by size and mount status
   root_block_device {
     volume_type = var.root_volume_type
     volume_size = var.root_volume_size  # 30GB
@@ -92,9 +94,11 @@ resource "aws_instance" "es_internal" {
     }
   }
 
-  # Additional EBS volume (1000GB) - attached as /dev/sdb, appears as nvme1n1, mounted at /mnt/ebs
+  # Additional EBS volume (1000GB) - attached as /dev/sdb
+  # Note: On NVMe instances, this may appear as nvme0n1 OR nvme1n1 depending on enumeration order
+  # The user_data script dynamically finds this volume by size (~1000GB) and absence of partitions
   ebs_block_device {
-    device_name = var.additional_volume_device  # /dev/sdb (becomes nvme1n1 on NVMe instances)
+    device_name = var.additional_volume_device  # /dev/sdb (NVMe device name is unpredictable)
     volume_type = var.additional_volume_type
     volume_size = var.additional_volume_size  # 1000GB
     iops        = var.additional_volume_type == "gp3" ? var.additional_volume_iops : null
